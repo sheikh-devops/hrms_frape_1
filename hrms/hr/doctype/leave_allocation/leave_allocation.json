@@ -34,7 +34,8 @@
   "earned_leave_schedule",
   "retry_failed_allocations",
   "notes",
-  "description"
+  "description",
+  "connection_tab"
  ],
  "fields": [
   {
@@ -98,12 +99,14 @@
   {
    "fieldname": "from_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "From Date",
    "reqd": 1
   },
   {
    "fieldname": "to_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "To Date",
    "reqd": 1
   },
@@ -136,6 +139,7 @@
    "allow_on_submit": 1,
    "fieldname": "total_leaves_allocated",
    "fieldtype": "Float",
+   "in_list_view": 1,
    "label": "Total Leaves Allocated",
    "read_only": 1,
    "reqd": 1
@@ -251,6 +255,12 @@
    "fieldtype": "Button",
    "hidden": 1,
    "label": "Retry Failed Allocations"
+  },
+  {
+   "fieldname": "connection_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connection",
+   "show_dashboard": 1
   }
  ],
  "icon": "fa fa-ok",
@@ -258,7 +268,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-12 12:54:03.589896",
+ "modified": "2026-04-14 12:27:40.152645",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "Leave Allocation",

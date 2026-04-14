@@ -113,6 +113,7 @@ frappe.ui.form.on("Leave Application", {
 			frm.trigger("make_dashboard");
 		}
 		frm.trigger("set_form_buttons");
+		frm.trigger("add_approval_action");
 	},
 
 	async set_employee(frm) {
@@ -294,6 +295,20 @@ frappe.ui.form.on("Leave Application", {
 	posting_date: function (frm) {
 		frm.trigger("make_dashboard");
 		frm.trigger("get_leave_balance");
+	},
+
+	add_approval_action: function (frm) {
+		if (frm.doc.status === "Open") {
+			frm.add_custom_button(__("Approve"), () => {
+				frm.set_value("status", "Approved");
+				frm.save();
+			});
+
+			frm.add_custom_button(__("Reject"), () => {
+				frm.set_value("status", "Rejected");
+				frm.save();
+			});
+		}
 	},
 });
 

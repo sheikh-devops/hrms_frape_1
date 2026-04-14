@@ -46,7 +46,6 @@
   {
    "fieldname": "leave_type_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Leave Type Name",
    "oldfieldname": "leave_type_name",
    "oldfieldtype": "Data",
