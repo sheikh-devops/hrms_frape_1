@@ -34,9 +34,6 @@ from hrms.hr.doctype.leave_application.leave_application import (
 	get_new_and_cf_leaves_taken,
 )
 from hrms.hr.doctype.leave_ledger_entry.leave_ledger_entry import expire_allocation
-from hrms.hr.doctype.leave_policy_assignment.leave_policy_assignment import (
-	create_assignment_for_multiple_employees,
-)
 from hrms.hr.doctype.leave_type.test_leave_type import create_leave_type
 from hrms.payroll.doctype.salary_slip.test_salary_slip import (
 	make_holiday_list,
@@ -1235,6 +1232,7 @@ class TestLeaveApplication(HRMSTestSuite):
 		attendance_name = mark_attendance(
 			employee=employee.name, attendance_date=nowdate(), status="Half Day", half_day_status="Absent"
 		)
+
 		leave_application = make_leave_application(
 			employee.name,
 			nowdate(),
@@ -1244,12 +1242,14 @@ class TestLeaveApplication(HRMSTestSuite):
 			half_day=1,
 			half_day_date=nowdate(),
 		)
+
 		attendance = frappe.get_value(
 			"Attendance",
 			attendance_name,
 			["status", "half_day_status", "leave_type", "leave_application"],
 			as_dict=True,
 		)
+
 		self.assertEqual(attendance.status, "Half Day")
 		self.assertEqual(attendance.half_day_status, "Present")
 		self.assertEqual(attendance.leave_type, leave_type.name)
@@ -1422,6 +1422,61 @@ class TestLeaveApplication(HRMSTestSuite):
 		application.discard()
 		application.reload()
 		self.assertEqual(application.status, "Cancelled")
+
+	@assign_holiday_list("Salary Slip Test Holiday List", "_Test Company")
+	def test_attendance_marking_on_leave_application_with_two_half_day_leaves(self):
+		employee = get_employee()
+		date = getdate()
+		first_sunday = get_first_sunday(self.holiday_list, for_date=get_year_start(date))
+		leave_date = add_days(first_sunday, 1)
+
+		leave_type_1 = create_leave_type(leave_type_name="_Test Half Day Leave Type 1")
+		leave_type_2 = create_leave_type(leave_type_name="_Test Half Day Leave Type 2")
+
+		make_allocation_record(
+			employee=employee.name,
+			leave_type=leave_type_1.name,
+			from_date=get_year_start(date),
+			to_date=get_year_ending(date),
+			leaves=10,
+		)
+		make_allocation_record(
+			employee=employee.name,
+			leave_type=leave_type_2.name,
+			from_date=get_year_start(date),
+			to_date=get_year_ending(date),
+			leaves=10,
+		)
+
+		first_leave = make_leave_application(
+			employee.name,
+			leave_date,
+			leave_date,
+			leave_type_1.name,
+			half_day=1,
+			half_day_date=leave_date,
+		)
+		second_leave = make_leave_application(
+			employee.name,
+			leave_date,
+			leave_date,
+			leave_type_2.name,
+			half_day=1,
+			half_day_date=leave_date,
+		)
+
+		attendance_records = frappe.get_all(
+			"Attendance",
+			filters={"employee": employee.name, "attendance_date": leave_date, "docstatus": ("!=", 2)},
+			fields=["status", "leave_type", "leave_application"],
+		)
+
+		self.assertEqual(len(attendance_records), 2)
+		for record in attendance_records:
+			self.assertEqual(record.status, "Half Day")
+
+		total_leaves = first_leave.total_leave_days + second_leave.total_leave_days
+		self.assertEqual(total_leaves, 1)
 
 
 def create_carry_forwarded_allocation(employee, leave_type, date=None):
